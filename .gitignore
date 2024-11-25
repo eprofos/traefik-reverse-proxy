@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+
+# ACME storage
+acme.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
