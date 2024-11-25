@@ -85,62 +85,83 @@ docker compose up -d
 https://traefik.yourdomain.com
 ```
 
-## Usage Example: Adding a Service
+## Usage Example: WordPress with Traefik
 
-Here's an example of how to add a service to be handled by Traefik. We'll use the `whoami` service as an example.
-
-Create a new file called `whoami-service.yml`:
+Here's an example of how to set up WordPress with Traefik integration. Create a new file called `compose.yaml`:
 
 ```yaml
 services:
-  whoami:
-    image: traefik/whoami
-    container_name: whoami
-    labels:
-      - "traefik.enable=true"
-      # Router configuration
-      - "traefik.http.routers.whoami.rule=Host(`whoami.yourdomain.com`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.tls.certresolver=letsencrypt"
-      # Service configuration
-      - "traefik.http.services.whoami.loadbalancer.server.port=80"
-      # Middleware chain
-      - "traefik.http.routers.whoami.middlewares=secure-headers"
-      # Security headers middleware
-      - "traefik.http.middlewares.secure-headers.headers.sslRedirect=true"
-      - "traefik.http.middlewares.secure-headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.secure-headers.headers.stsIncludeSubdomains=true"
-      - "traefik.http.middlewares.secure-headers.headers.stsPreload=true"
+  wordpress:
+    image: wordpress:latest
+    container_name: front_wordpress
+    restart: unless-stopped
+    environment:
+      - WORDPRESS_DB_HOST=front_mysql
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress_password
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - wordpress_data:/var/www/html
     networks:
       - proxy
+      - front_internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.front.rule=Host(`wordpress.example.com`)"
+      - "traefik.http.routers.front.entrypoints=websecure"
+      - "traefik.http.routers.front.tls=true"
+      - "traefik.http.routers.front.tls.certresolver=letsencrypt"
+      - "traefik.http.services.front.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+
+  mysql:
+    image: mysql:8.0
+    container_name: front_mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress_password
+      - MYSQL_ROOT_PASSWORD=mysql_root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - front_internal
+
+volumes:
+  wordpress_data:
+  mysql_data:
 
 networks:
   proxy:
     external: true
+  front_internal:
+    name: front_internal
 ```
 
-To deploy the service:
+To deploy WordPress:
 
-1. Save the above configuration in `whoami-service.yml`
-2. Make sure your domain (whoami.yourdomain.com) points to your server
-3. Deploy the service:
+1. Save the above configuration in `compose.yaml`
+2. Make sure your domain (wordpress.example.com) points to your server
+3. Deploy WordPress:
 ```bash
-docker compose -f whoami-service.yml up -d
+docker compose up -d
 ```
 
-The service will be available at `https://whoami.yourdomain.com` with:
-- Automatic HTTPS
-- Let's Encrypt SSL certificate
-- Security headers
-- Integration with Traefik's monitoring
+The WordPress site will be available at `https://wordpress.example.com` with:
+- Automatic HTTPS with Let's Encrypt certificates
+- Secure MySQL database connection
+- Persistent data storage
+- Integration with Traefik's proxy network
 
 Key points in the configuration:
 - `traefik.enable=true`: Tells Traefik to handle this container
-- `Host` rule: Defines which domain will route to this service
+- `Host` rule: Defines the domain for WordPress
 - `certresolver=letsencrypt`: Uses Let's Encrypt for SSL certificates
-- `middlewares`: Applies security headers
-- `networks`: Connects to the same network as Traefik
+- `traefik.docker.network=proxy`: Specifies the network for Traefik communication
+- Two networks:
+  - `proxy`: For Traefik communication
+  - `front_internal`: For secure database communication
 
 ## Security Features
 
