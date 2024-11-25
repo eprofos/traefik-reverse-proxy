@@ -1,6 +1,6 @@
-# Secure Traefik v3.2 Reverse Proxy Configuration
+# Secure Traefik Reverse Proxy Configuration
 
-A production-ready Traefik v3.2 reverse proxy setup with automatic SSL certificate management, enhanced security features, and Docker integration. This configuration provides a secure gateway for your containerized applications with features like automatic HTTPS, rate limiting, and security headers.
+A production-ready Traefik reverse proxy setup with automatic SSL certificate management, enhanced security features, and Docker integration. This configuration provides a secure gateway for your containerized applications with features like automatic HTTPS, rate limiting, and security headers.
 
 ## Features
 
@@ -92,8 +92,6 @@ Here's an example of how to add a service to be handled by Traefik. We'll use th
 Create a new file called `whoami-service.yml`:
 
 ```yaml
-version: '3'
-
 services:
   whoami:
     image: traefik/whoami
