@@ -43,3 +43,8 @@ tls:
   certificates:
     - certFile: "${CERT_FILE_PATH}"
       keyFile: "${KEY_FILE_PATH}"
+
+experimental:
+  plugins:
+    fail2ban:
+      moduleName: "github.com/traefik/plugin-fail2ban"

@@ -21,6 +21,7 @@ services:
       - "--log.level=DEBUG"
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=${TRAEFIK_DASHBOARD_DOMAIN}"
+      - "--experimental.plugins.fail2ban.moduleName=github.com/traefik/plugin-fail2ban"
     labels:
       - "traefik.enable=true"
       # Dashboard configuration
@@ -44,6 +45,10 @@ services:
       - "traefik.http.middlewares.headers.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.headers.headers.stsPreload=true"
       - "traefik.http.middlewares.headers.headers.forceSTSHeader=true"
+      # Fail2Ban middleware
+      - "traefik.http.middlewares.fail2ban.plugin.fail2ban.maxretry=${FAIL2BAN_MAXRETRY}"
+      - "traefik.http.middlewares.fail2ban.plugin.fail2ban.findtime=${FAIL2BAN_FINDTIME}"
+      - "traefik.http.middlewares.fail2ban.plugin.fail2ban.bantime=${FAIL2BAN_BANTIME}"
     networks:
       - proxy
 
